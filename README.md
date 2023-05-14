@@ -1,4 +1,3 @@
 # speaker-notes
 
-Designed for the following task:
-From zoom presentations in mp4 file format, as well as the pdf of the presentation, transcribe the audio and annotate each slide of the presentation with the speaker's commentary, AUTOMATICALLY.
+Automatically transcribe the audio and annotate each slide of a presentation with the speaker's commentary, from zoom recordings of the presentation (mp4 file format), as well as the pdf of the presentation.
