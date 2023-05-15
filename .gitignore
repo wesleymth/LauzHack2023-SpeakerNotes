@@ -166,3 +166,4 @@ cython_debug/
 *.jl
 *.DS_Store
 *.png
+*.json
