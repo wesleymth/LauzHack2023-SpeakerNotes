@@ -7,6 +7,8 @@ import joblib
 from moviepy.audio.AudioClip import concatenate_audioclips
 from moviepy.editor import AudioFileClip
 
+from utils import load_json_time_config
+
 
 def MP4ToMP3(mp4: str, mp3: str) -> None:
     """Convert mp4 to mp3 using moviepy
@@ -139,7 +141,7 @@ def subclip_audio(
         subclip[
             "path"
         ] = f"{saving_folder}/subclip_{subclip['index']}_{subclip['start']}_{subclip['end']}.mp3"
-        # temp_clip.write_audiofile(subclip['path'])
+        temp_clip.write_audiofile(subclip["path"])
         temp_clip.close()
     audio_clip.close()
     return subclips_timestamps
@@ -148,16 +150,20 @@ def subclip_audio(
 if __name__ == "__main__":
     VIDEO_FILE_PATH = "data/BIOENG320_lecture2(2023)_Prof-Yimon-AYE.mp4"
     AUDIO_FILE_PATH = "output/BIOENG320_lecture2(2023)_Prof-Yimon-AYE.mp3"
+    JSON_FILE_PATH = "output/BIOENG320_lecture2(2023)_Prof-Yimon-AYE.json"
 
-    # MP4ToMP3(VIDEO_FILE_PATH, AUDIO_FILE_PATH)
+    time_config = load_json_time_config(JSON_FILE_PATH, "audio")
+
+    MP4ToMP3(VIDEO_FILE_PATH, AUDIO_FILE_PATH)
 
     subclips_list = subclip_audio(
         AUDIO_FILE_PATH,
         saving_folder="output",
-        audio_start=timedelta(hours=0, minutes=10, seconds=5),
-        audio_end=timedelta(hours=1, minutes=56, seconds=4),
-        pause_start_time=timedelta(hours=1, minutes=00, seconds=18),
-        pause_end_time=timedelta(hours=1, minutes=13, seconds=10),
+        **time_config
+        # audio_start=timedelta(hours=0, minutes=10, seconds=5),
+        # audio_end=timedelta(hours=1, minutes=56, seconds=4),
+        # pause_start_time=timedelta(hours=1, minutes=00, seconds=18),
+        # pause_end_time=timedelta(hours=1, minutes=13, seconds=10),
     )
 
     joblib.dump(subclips_list, "output/subclips_list.jl")
