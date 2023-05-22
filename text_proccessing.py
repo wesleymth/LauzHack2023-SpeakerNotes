@@ -123,8 +123,12 @@ def get_slide_text(audio_clip_df: pd.DataFrame) -> List[str]:
 
 
 if __name__ == "__main__":
-    transcription = joblib.load("output/transcription_google_colab.jl")
-    subclips_list = joblib.load("output/subclips_list.jl")
+    transcription = joblib.load(
+        "output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/transcription_biosyn_lecture_1.jl"
+    )
+    subclips_list = joblib.load(
+        "output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/subcplips_info_biosyn_lecture_1.jl"
+    )
 
     subclip_info_df = pd.DataFrame(subclips_list)
     audio_clip_df = create_audio_clip_df(
@@ -134,10 +138,12 @@ if __name__ == "__main__":
     remove_overlapping_segments(clip_df=audio_clip_df)
 
     detected_scenes_metadata = read_ffmpeg_scene_detection_output(
-        detected_frames_output="output/lowering_threshold/detected_frames.txt"
+        detected_frames_output="output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/frame_metadata.txt"
     )
 
-    detected_scenes_folder_path = "output/lowering_threshold"
+    detected_scenes_folder_path = (
+        "output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/frames"
+    )
 
     scene_file_names_and_ids = extract_png_file_names_and_ids(
         folder_path=detected_scenes_folder_path
@@ -151,4 +157,6 @@ if __name__ == "__main__":
 
     slide_text = get_slide_text(audio_clip_df=audio_clip_df)
 
-    joblib.dump(slide_text, "output/lowering_threshold/slide_text.jl")
+    joblib.dump(
+        slide_text, "output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/slide_text.jl"
+    )

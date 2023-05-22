@@ -94,9 +94,9 @@ def annotate_pdf_blank_pages(
 
 if __name__ == "__main__":
     slide_text = joblib.load(
-        "output/BIOENG320_lecture2(2023)_Prof-Yimon-AYE/lowering_threshold/slide_text.jl"
+        "output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/slide_text.jl"
     )
-    pdf_path = "data/BIOENG320-2023Apr24_lecture-finalized.pdf"
+    pdf_path = "data/syn_bio_rna_lecture_1/BIOENG320-2023Apr17_finalized.pdf"
     max_length = 4500
 
     slide_text = [split_string_into_sentences(text, max_length) for text in slide_text]
@@ -104,5 +104,5 @@ if __name__ == "__main__":
     annotate_pdf_blank_pages(
         pdf_path=pdf_path,
         annotation_text=slide_text,
-        output_path=f"output/BIOENG320_lecture2(2023)_Prof-Yimon-AYE/lowering_threshold/annotated_split_string_into_sentences_{max_length}.pdf",
+        output_path=f"output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/lecture_1_annotated.pdf",
     )

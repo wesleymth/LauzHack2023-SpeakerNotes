@@ -4,6 +4,8 @@ from datetime import timedelta
 
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 
+from utils import load_json_time_config, remove_directory_contents
+
 
 def clean_video(
     mp4_path: str,
@@ -56,7 +58,36 @@ def clean_video(
         video_clip = video_clip.subclip(
             video_start.total_seconds(), video_clip.duration
         )
-    video_clip.write_videofile(clean_video_path)
+    video_clip.write_videofile(clean_video_path, audio=False)
+    video_clip.close()
+
+
+def clean_video_to_gif(
+    mp4_path: str,
+    clean_video_path: str,
+    video_start: datetime.timedelta = None,
+    video_end: datetime.timedelta = None,
+    pause_start_time: datetime.timedelta = None,
+    pause_end_time: datetime.timedelta = None,
+) -> None:
+    video_clip = VideoFileClip(mp4_path)
+    if video_end:
+        video_clip = video_clip.subclip(0, video_end.total_seconds())
+
+    if pause_start_time and pause_end_time:
+        start_to_pause = video_clip.subclip(0, pause_start_time.total_seconds())
+        pause_to_end = video_clip.subclip(
+            pause_end_time.total_seconds(), video_clip.duration
+        )
+        video_clip = concatenate_videoclips([start_to_pause, pause_to_end])
+        start_to_pause.close()
+        pause_to_end.close()
+
+    if video_start:
+        video_clip = video_clip.subclip(
+            video_start.total_seconds(), video_clip.duration
+        )
+    video_clip.write_gif(clean_video_path, fps=1)
     video_clip.close()
 
 
@@ -75,6 +106,23 @@ def detect_frame_changes(
     output, error = process.communicate()
 
 
+def process_video(cleaned_video_path, output_directory, sensitivity_threshold=0.05):
+    command = [
+        "ffmpeg",
+        "-i",
+        cleaned_video_path,
+        "-filter_complex",
+        f"select='gt(scene,{sensitivity_threshold})',metadata=print:file={output_directory}/frame_metadata.txt",
+        "-start_number",
+        "0",
+        "-fps_mode",
+        "vfr",
+        f"{output_directory}/frames/img%03d.png",
+    ]
+    remove_directory_contents(f"{output_directory}/frames")
+    subprocess.run(command)
+
+
 if __name__ == "__main__":
     # clean_video(
     #     mp4_path="data/BIOENG320_lecture2(2023)_Prof-Yimon-AYE.mp4",
@@ -84,9 +132,23 @@ if __name__ == "__main__":
     #     pause_start_time=timedelta(hours=1, minutes=00, seconds=18),
     #     pause_end_time=timedelta(hours=1, minutes=13, seconds=10),
     # )
-    detect_frame_changes(
-        cleaned_vieo_path="data/syn_bio_rna_lecture_1/BIOENG320-lecture1(2023)_Prof-Yimon-AYE.mp4",
-        metadata_output_path="output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/frame_changes.txt",
-        frames_output_path="output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/frames/frame-%03d.png",
-        sensitivity_threshold=0.05,
-    )
+    # detect_frame_changes(
+    #     cleaned_vieo_path="data/syn_bio_rna_lecture_1/BIOENG320-lecture1(2023)_Prof-Yimon-AYE.mp4",
+    #     metadata_output_path="output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/frame_changes.txt",
+    #     frames_output_path="output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/frames/frame-%03d.png",
+    #     sensitivity_threshold=0.05,
+    # )
+
+    # time_config = load_json_time_config("data/syn_bio_rna_lecture_1/BIOENG320-lecture1(2023)_Prof-Yimon-AYE.json", "video")
+
+    # clean_video(
+    #     mp4_path="data/syn_bio_rna_lecture_1/BIOENG320-lecture1(2023)_Prof-Yimon-AYE.mp4",
+    #     clean_video_path="output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/cleaned_BIOENG320-lecture1(2023)_Prof-Yimon-AYE.mp4",
+    #     **time_config
+    # )
+
+    cleaned_video_path = "output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE/cleaned_BIOENG320-lecture1(2023)_Prof-Yimon-AYE.mp4"
+    output_path = "output/BIOENG320-lecture1(2023)_Prof-Yimon-AYE"
+    sensitivity_threshold = 0.05
+
+    process_video(cleaned_video_path, output_path, sensitivity_threshold)
