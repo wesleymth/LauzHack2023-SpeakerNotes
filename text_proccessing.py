@@ -1,10 +1,14 @@
-import joblib
-import pandas as pd
-import re
 import os
+import re
 from typing import List
 
-def create_audio_clip_df(transcription :List[dict], subclip_info_df :pd.DataFrame)->pd.DataFrame:
+import joblib
+import pandas as pd
+
+
+def create_audio_clip_df(
+    transcription: List[dict], subclip_info_df: pd.DataFrame
+) -> pd.DataFrame:
     """_summary_
 
     Parameters
@@ -34,7 +38,8 @@ def create_audio_clip_df(transcription :List[dict], subclip_info_df :pd.DataFram
     subclip_0_df = subclip_0_df.reset_index(drop=True)
     return subclip_0_df
 
-def remove_overlapping_segments(clip_df :pd.DataFrame)->None:
+
+def remove_overlapping_segments(clip_df: pd.DataFrame) -> None:
     """_summary_
 
     Parameters
@@ -51,9 +56,9 @@ def remove_overlapping_segments(clip_df :pd.DataFrame)->None:
             ].index,
             inplace=True,
         )
-    
-def read_ffmpeg_scene_detection_output(detected_frames_output :str)->List[dict]:
-    
+
+
+def read_ffmpeg_scene_detection_output(detected_frames_output: str) -> List[dict]:
     # Read the text file
     with open(detected_frames_output, "r") as file:
         content = file.read()
@@ -61,12 +66,14 @@ def read_ffmpeg_scene_detection_output(detected_frames_output :str)->List[dict]:
     frame_numbers = re.findall(r"frame:(\d+)", content)
     # pts_time_numbers = re.findall(r'pts_time:(\d+\.\d+)', content)
     pts_time_numbers = re.findall(r"pts_time:(\d+)", content)
-    
-    return [{"frame_id": int(frame_numbers[i]), "pts_time": int(pts_time_numbers[i])} for i in range(len(frame_numbers))]
+
+    return [
+        {"frame_id": int(frame_numbers[i]), "pts_time": int(pts_time_numbers[i])}
+        for i in range(len(frame_numbers))
+    ]
 
 
-def extract_png_file_names_and_ids(folder_path: str)->dict:
-
+def extract_png_file_names_and_ids(folder_path: str) -> dict:
     # Extract PNG file names and IDs
     file_names = []
     ids = []
@@ -80,13 +87,16 @@ def extract_png_file_names_and_ids(folder_path: str)->dict:
     # Print the file names and IDs
     return {"file_names": file_names, "ids": ids}
 
-def filter_frame_list(frame_list :List[dict], extracted :dict)->dict:
-    return {
-        frame["frame_id"]: frame["pts_time"] for frame in frame_list if frame["frame_id"] in extracted['ids']
-    }
-    
 
-def add_frame_ids_to_df(audio_clip_df :pd.DataFrame, filtered_dict :dict)->None:
+def filter_frame_list(frame_list: List[dict], extracted: dict) -> dict:
+    return {
+        frame["frame_id"]: frame["pts_time"]
+        for frame in frame_list
+        if frame["frame_id"] in extracted["ids"]
+    }
+
+
+def add_frame_ids_to_df(audio_clip_df: pd.DataFrame, filtered_dict: dict) -> None:
     # Sort the dictionary by timestamp value in ascending order
     sorted_dict = {
         k: v for k, v in sorted(filtered_dict.items(), key=lambda item: int(item[1]))
@@ -104,12 +114,14 @@ def add_frame_ids_to_df(audio_clip_df :pd.DataFrame, filtered_dict :dict)->None:
 
     return audio_clip_df
 
-def get_slide_text(audio_clip_df :pd.DataFrame)->List[str]:
+
+def get_slide_text(audio_clip_df: pd.DataFrame) -> List[str]:
     return [
         "".join(audio_clip_df[audio_clip_df["frame_id"] == str(i)]["text"].to_list())
         for i in audio_clip_df["frame_id"].unique().tolist()
     ]
-    
+
+
 if __name__ == "__main__":
     transcription = joblib.load("output/transcription_google_colab.jl")
     subclips_list = joblib.load("output/subclips_list.jl")
@@ -118,28 +130,25 @@ if __name__ == "__main__":
     audio_clip_df = create_audio_clip_df(
         transcription=transcription, subclip_info_df=subclip_info_df
     )
-    
+
     remove_overlapping_segments(clip_df=audio_clip_df)
-    
-    detected_scenes_metadata = read_ffmpeg_scene_detection_output(detected_frames_output="output/lowering_threshold/detected_frames.txt")
-    
-    detected_scenes_folder_path = "output/lowering_threshold" 
-    
+
+    detected_scenes_metadata = read_ffmpeg_scene_detection_output(
+        detected_frames_output="output/lowering_threshold/detected_frames.txt"
+    )
+
+    detected_scenes_folder_path = "output/lowering_threshold"
+
     scene_file_names_and_ids = extract_png_file_names_and_ids(
         folder_path=detected_scenes_folder_path
     )
-    
+
     filtered_frame_list = filter_frame_list(
-        frame_list=detected_scenes_metadata,
-        extracted=scene_file_names_and_ids
+        frame_list=detected_scenes_metadata, extracted=scene_file_names_and_ids
     )
-    
-    
-    add_frame_ids_to_df(
-        audio_clip_df=audio_clip_df,
-        filtered_dict=filtered_frame_list
-    )
-    
+
+    add_frame_ids_to_df(audio_clip_df=audio_clip_df, filtered_dict=filtered_frame_list)
+
     slide_text = get_slide_text(audio_clip_df=audio_clip_df)
-    
+
     joblib.dump(slide_text, "output/lowering_threshold/slide_text.jl")
