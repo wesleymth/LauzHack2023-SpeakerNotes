@@ -1,3 +1,6 @@
+keys.py 
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -162,9 +165,10 @@ cython_debug/
 *.mp3
 *.mp4
 *.pdf
-*.jl
 *.DS_Store
 *.png
-*.json
-output/
+*.txt
+*.mov
 data/
+
+keys.py
