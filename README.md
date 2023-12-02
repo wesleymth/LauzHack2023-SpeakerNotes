@@ -13,6 +13,7 @@ pip install 'transformers[torch]'
 pip install pdfminer
 pip3 install pdfminer-six
 pip install pytesseract
+pip install openai==0.28
 # Check if transformers download worked
 python -c "from transformers import pipeline; print(pipeline('sentiment-analysis')('we love you'))"
 ```
