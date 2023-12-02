@@ -3,7 +3,6 @@ from transformers import pipeline
 import os
 import re
 import pandas as pd
-import openai
 
 
 def MP4ToMP3(mp4: str, mp3: str) -> None:
@@ -84,9 +83,10 @@ def create_slide_transitions_df(
     return slide_transitions
 
 def assign_slide_text(time_text_df, slide_transitions):
+    slide_transitions['slide_text'] = ''
     idx_slide = 0
     for index, text_row in time_text_df.iterrows():
-        if text_row['timestamps'][1] > slide_transitions['timestamps'][idx_slide][1]:
+        if text_row['timestamp'][1] > slide_transitions['timestamps'][idx_slide][1]:
             idx_slide+=1
         slide_transitions['slide_text'][idx_slide] += text_row['text']
 
@@ -96,33 +96,6 @@ def written_text_slides(slide_info):
         filtered_page_dict = {key: value for key, value in slide_info.items() if 'Page_4' <= key <= 'Page_9'}
         first_values_list = [value[0] for value in filtered_page_dict.values()]
         return pd.DataFrame({'Written_text': first_values_list})
-
-def generate_response(prompt):
-    messag=[{"role": "system", "content": "You are a chatbot"}]
-    
-    ## build a chat history: you can CONDITION the bot on the style of replies you want to see - also getting weird behaviors... such as KanyeGPT
-    history_bot = ["Yes, I'm ready, I will only output the asked without adding any extra information."]
-    
-    # ask ChatGPT to return STRUCTURED, parsable answers that you can extract easily - often better providing examples of desired behavior (1-2 example often enough)
-    history_user = ["I'll give you two texts (i.e., for each of my messages) you will summarize the first one wihtout repeting infomation that can be found in the second one. \n\nfor example:\nmy input = First Text:  I have a background in computer vision, so I played a lot with mobile apps and previous hackathon challenges. I missed there. Previous hackathon challenges used to be around computer vision. You can do a lot of cool stuff with them. You can still do them today, but surprise, you don't have to do them manually. You can just ask the API to do it for you. \n Second Text: ['##ch_internal##', 'DOCUMENT UNDERSTANDING•Classification•Field extraction (OCR + HWR)•Semantic understanding•Process automation•Videos are also documents!•Your class notes are also docs!'] \n\nyour output =   \nready to start?"]
-    
-    for user_message, bot_message in zip(history_user, history_bot):
-        messag.append({"role": "user", "content": str(user_message)})
-        messag.append({"role": "system", "content": str(bot_message)})
-    messag.append({"role": "user", "content": str(prompt)})
-
-    response = openai.ChatCompletion.create(
-        
-    # please use gtp3.5 although gpt4 is much better for $$
-    model="gpt-3.5-turbo",
-        messages=messag
-    )
-    result = ''
-    for choice in response.choices:
-        result += choice.message.content
-    history_bot.append(result)
-    history_user.append(str(prompt))
-    return result
 
 
 if __name__ == "__main__":
@@ -143,19 +116,4 @@ if __name__ == "__main__":
     transcript_slides = written_text_slides(slide_info)
 
     transcript_slides.to_csv('transcript_slides.txt', index=False, header=False, sep='\t')
-    '''
-    # OpenAI
-    try:
-        with open('keys.txt', 'r') as file:
-            openai_key = file.read()
-    except Exception as e:
-            print(e)
-
-    openai.api_key = openai_key
-    mykey = openai_key
-
-    print(generate_response("The power of human language and thought arises from it"))
-    '''
-    # time_text_df.to_csv("time_text_df.csv")
-    # slide_transitions.to_csv("slide_transitions.csv")
     
