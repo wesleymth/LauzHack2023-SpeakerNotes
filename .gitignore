@@ -162,9 +162,10 @@ cython_debug/
 *.mp3
 *.mp4
 *.pdf
-*.jl
 *.DS_Store
 *.png
-*.json
-output/
+*.txt
+*.mov
 data/
+
+keys.py

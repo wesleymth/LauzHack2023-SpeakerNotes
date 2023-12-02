@@ -6,5 +6,11 @@ Automatically transcribe the audio and annotate each slide of a presentation wit
 conda create --name lauz python=3.11.5
 conda activate lauz
 pip install PyPDF2
+pip install moviepy
+pip install matplotlib, scipy
+pip install torch torchvision torchaudio
+pip install 'transformers[torch]'
+# Check if transformers download worked
+python -c "from transformers import pipeline; print(pipeline('sentiment-analysis')('we love you'))"
 ```
 
