@@ -1,6 +1,10 @@
 import openai
 
-def get_key():
+def get_key(key = None):
+
+    if key is not None:
+        return key
+
     # Need to create a file keys.txt with your OpenAI_key in it
     try:
         with open('keys.txt', 'r') as file:
