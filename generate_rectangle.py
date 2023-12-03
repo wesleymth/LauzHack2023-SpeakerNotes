@@ -9,7 +9,7 @@ import fitz
 from PIL import Image
 from scipy import signal
 import matplotlib.pyplot as plt
-import gtp_summary as gtp
+# import gtp_summary as gtp
 
 def parse_layout(layout):
     """Function to recursively parse the layout tree."""
@@ -160,21 +160,21 @@ def add_all_notes_slides(page, text_list, rect_list, fontname, color):
     
     
 def write_slides (page, rect, text, rgb_color, fontname="Helv" ) :
-    page.insert_textbox(rect,text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255, rotate=0)
+    page.insert_textbox(rect, text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255, rotate=0)
     
 if __name__ == "__main__":
 
 
-    full_obj = find_object("slides_AXA_cropped.pdf")
+    full_obj = find_object("../01-NX422 keyconcepts_organized.pdf")
 
-    mask_dict = generate_mask("slides_AXA_cropped.pdf", full_obj)
+    mask_dict = generate_mask("../01-NX422 keyconcepts_organized.pdf", full_obj)
     
     key_openai = "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"
 
     #prompt = gtp.generate_prompt('transcript_audio.txt','transcript_slides.txt',False)
     blank_space_dict = {}
     
-    filename = 'aac.pdf'
+    filename = '../01-NX422 keyconcepts_organized.pdf'
     doc = fitz.open(filename) 
     for key, mask in mask_dict.items():
         res = extract_many_rectangle(mask, 3)
@@ -182,11 +182,12 @@ if __name__ == "__main__":
         text = "adjkasdjkadjkfsjlkfnsshchescuhriuvhuiegu \n sfbgjkhcudbcjneuchjdkmfkhiuc hckjfnnjk " #gtp.generate_response(prompt[key], key_openai) 
         
         txt, rect = choose_rect(res, text, "helv", 10)
+        print(rect)
 
         page = doc[key] 
 
         add_all_notes_slides(page, txt, rect, "Helv", color = 0)
-    doc.save("output12.pdf")  # save to new file
+    doc.save("output23.pdf")  # save to new file
                
     # import matplotlib.pyplot as plt
 
