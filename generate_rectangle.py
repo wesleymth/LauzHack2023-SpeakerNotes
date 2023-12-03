@@ -8,6 +8,8 @@ import numpy as np
 import fitz
 from PIL import Image
 from scipy import signal
+import matplotlib.pyplot as plt
+import gtp_summary as gtp
 
 def parse_layout(layout):
     """Function to recursively parse the layout tree."""
@@ -157,16 +159,19 @@ def add_all_notes_slides(page, text_list, rect_list, fontname, color):
         write_slides(page, rect, text, color, fontname)
     
     
-
 def write_slides (page, rect, text, rgb_color, fontname="Helv" ) :
     page.insert_textbox(rect,text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255, rotate=0)
     
 if __name__ == "__main__":
 
-    full_obj = find_object("aac.pdf")
+
+    full_obj = find_object("slides_AXA_cropped.pdf")
+
+    mask_dict = generate_mask("slides_AXA_cropped.pdf", full_obj)
     
-    mask_dict = generate_mask("aac.pdf", full_obj)
-    
+    key_openai = "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"
+
+    #prompt = gtp.generate_prompt('transcript_audio.txt','transcript_slides.txt',False)
     blank_space_dict = {}
     
     filename = 'aac.pdf'
@@ -174,7 +179,7 @@ if __name__ == "__main__":
     for key, mask in mask_dict.items():
         res = extract_many_rectangle(mask, 3)
         blank_space_dict[key] = res
-        text = "bjbkjb \n kjbmn bkjb \n kjbmn vnjeab veabkj vnjefkvn nvekj  nvekjbn cnjwkfvn kjqfnkjwnf ncjkwnfgW J bjbkjb \n bjbkjb \n kjbmn bkjb \n kjbmn vnjeab veabkj vnjefkvn nvekj  nvekjbn cnjwkjbmn vnjeab veabkj vnjefkvn nvekj  nvekjbn cnjwkfvn kjqfnkjwnf ncjkwnfgW J bjbkjb \n kjbmn vnjeab veabkj vnjefkvn nvekj  kfvn kjqfnkjwnf ncjkwnfgW Jbjbkjb" #todo
+        text = "adjkasdjkadjkfsjlkfnsshchescuhriuvhuiegu \n sfbgjkhcudbcjneuchjdkmfkhiuc hckjfnnjk " #gtp.generate_response(prompt[key], key_openai) 
         
         txt, rect = choose_rect(res, text, "helv", 10)
 
@@ -193,3 +198,4 @@ if __name__ == "__main__":
     #         plt.plot(res["x1"], res["y0"], 'ro')
     #         plt.plot(res["x1"], res["y1"], 'ro')
     #     plt.show()
+

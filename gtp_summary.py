@@ -1,23 +1,16 @@
 import openai
 
-def generate_response(prompt):
-
-    # Need to create a file keys.txt with your OpenAI_key in it
-    try:
-        with open('keys.txt', 'r') as file:
-            openai_key = file.read()
-    except Exception as e:
-            print(e)
+def generate_response(prompt, openai_key):
 
     openai.api_key = openai_key
 
     messag=[{"role": "system", "content": "You are a chatbot"}]
     
     ## build a chat history: you can CONDITION the bot on the style of replies you want to see - also getting weird behaviors... such as KanyeGPT
-    history_bot = ["Yes, I'm ready, I will only output the notes in bullet-points asked based only on the first text, without saying that it cames from the frist text."]
+    history_bot = ["Yes, I'm ready, I will only output the notes in bullet-points asked based only on the first text."]
     
     # ask ChatGPT to return STRUCTURED, parsable answers that you can extract easily - often better providing examples of desired behavior (1-2 example often enough)
-    history_user = ["I'll give you two texts, you will take notes based only on the first one wihtout repeating information that can be found in the second one. If the second has information that you explain in the notes, you can remove it from the notes. \n\nfor example:\nmy input = First Text: I have a background in computer vision, so I played a lot with mobile apps and previous hackathon challenges. I missed there. Previous hackathon challenges used to be around computer vision. You can do a lot of cool stuff with them. You can still do them today, but surprise, you don't have to do them manually. You can just ask the API to do it for you. \n Second Text: ['##ch_internal##', 'DOCUMENT UNDERSTANDING•Classification•Field extraction (OCR + HWR)•Semantic understanding•Process automation•Videos are also documents!•Your class notes are also docs!'] \n\n your output = -Author's background: Computer vision expertise. \n -Experience with mobile apps and hackathon challenges. \n -Evolution of hackathon challenges: Shift from manual tasks to API automation. \n -Emphasis on the continued relevance of computer vision in hackathons. \nready to start?"]
+    history_user = ["I'll give you two texts, you will take notes based only on the first text. Wihtout repeating information that can be found in the second one. If the second has information that you explain in the notes, you remove it from the notes. \n\nfor example:\nmy input = First Text: I have a background in computer vision, so I played a lot with mobile apps and previous hackathon challenges. I missed there. Previous hackathon challenges used to be around computer vision. You can do a lot of cool stuff with them. You can still do them today, but surprise, you don't have to do them manually. You can just ask the API to do it for you. \n Second Text: ['##ch_internal##', 'DOCUMENT UNDERSTANDING•Classification•Field extraction (OCR + HWR)•Semantic understanding•Process automation•Videos are also documents!•Your class notes are also docs!'] \n\n your output = -Author's background: Computer vision expertise. \n -Experience with mobile apps and hackathon challenges. \n -Evolution of hackathon challenges: Shift from manual tasks to API automation. \n -Emphasis on the continued relevance of computer vision in hackathons. \nready to start?"]
     
     for user_message, bot_message in zip(history_user, history_bot):
         messag.append({"role": "user", "content": str(user_message)})
@@ -38,3 +31,20 @@ def generate_response(prompt):
     history_user.append(str(prompt))
     
     return result
+
+def generate_prompt(path_audio_transcript, path_slides_transcript,not_ignore_slides=False):
+    with open(path_audio_transcript, 'r') as file:
+        audio_text = [line.strip() for line in file.readlines()]
+
+    if not_ignore_slides:
+        with open(path_slides_transcript, 'r') as file:
+            slide_text = [line.strip() for line in file.readlines()]
+    else:
+        slide_text = ["" for _ in audio_text]
+
+    text =[]
+
+    for i in range(len(audio_text)):
+        text.append("First Text: " + audio_text[i] + " Second Text: " + slide_text[i])
+
+    return text
