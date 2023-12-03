@@ -93,8 +93,8 @@ def assign_slide_text(time_text_df, slide_transitions):
     return slide_transitions
 
 def written_text_slides(slide_info):
-        filtered_page_dict = {key: value for key, value in slide_info.items() if 'Page_4' <= key <= 'Page_9'}
-        first_values_list = [value[0] for value in filtered_page_dict.values()]
+        #filtered_page_dict = {key: value for key, value in slide_info.items() if 'Page_4' <= key <= 'Page_9'}
+        first_values_list = [value[0] for value in slide_info.values()]
         return pd.DataFrame({'Written_text': first_values_list})
 
 
