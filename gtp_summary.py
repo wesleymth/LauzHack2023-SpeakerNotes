@@ -1,13 +1,6 @@
 import openai
 
-def generate_response(prompt):
-
-    # Need to create a file keys.txt with your OpenAI_key in it
-    try:
-        with open('keys.txt', 'r') as file:
-            openai_key = file.read()
-    except Exception as e:
-            print(e)
+def generate_response(prompt, openai_key):
 
     openai.api_key = openai_key
 
@@ -38,3 +31,20 @@ def generate_response(prompt):
     history_user.append(str(prompt))
     
     return result
+
+def generate_prompt(path_audio_transcript, path_slides_transcript,not_ignore_slides=False):
+    with open(path_audio_transcript, 'r') as file:
+        audio_text = [line.strip() for line in file.readlines()]
+
+    if not_ignore_slides:
+        with open(path_slides_transcript, 'r') as file:
+            slide_text = [line.strip() for line in file.readlines()]
+    else:
+        slide_text = ["" for _ in audio_text]
+
+    text =[]
+
+    for i in range(len(audio_text)):
+        text.append("First Text: " + audio_text[i] + " Second Text: " + slide_text[i])
+
+    return text
