@@ -8,6 +8,8 @@ import numpy as np
 import fitz
 from PIL import Image
 from scipy import signal
+import matplotlib.pyplot as plt
+import gtp_summary as gtp
 
 def parse_layout(layout):
     """Function to recursively parse the layout tree."""
@@ -35,7 +37,7 @@ def find_object(path) :
         full_obj[i] = obj
     return full_obj
 
-def generate_mask(path):
+def generate_mask(path, full_obj):
 
     pdf_document = fitz.open(path)
     mask_dict = {}
@@ -119,26 +121,81 @@ def extract_many_rectangle(mask, nb_of_rectangle) :
         msk[res["y0"]:res["y1"], res["x0"]:res["x1"]] = 0
     return dict_rect
  
+def choose_rect (rect_list, text, font, fs) :
+    
+    font = fitz.Font(font)
+    x = text.split("\n")
+    
+    fs = 10
+    i = 0
+    j = 0
+    text_list = []
+    rect_l = []
 
+    while len(rect_list) > j  and len(x)> i :
+        rect = [rect_list[j]["x0"]+5, rect_list[j]["y0"]+5, rect_list[j]["x1"]-5, rect_list[j]["y1"]-5]
+        available_line = (rect[3]-rect[1]) / ((font.ascender - font.descender) * fs)
+        nb_line = 0
+        current = ""
+
+        while available_line >  np.ceil(nb_line) and len(x)> i :
+        
+            if current == "" :
+                current = x[i]
+            else :
+                current = current + "\n" + x[i]
+                
+            tl = font.text_length(current, fontsize=fs)
+            nb_line += tl / (rect[2]-rect[0])
+            i += 1
+            
+        text_list.append(current)
+        rect_l.append(rect)
+        j += 1
+    return text_list, rect_l
+
+def add_all_notes_slides(page, text_list, rect_list, fontname, color):
+    for rect, text in zip(rect_list, text_list):
+        write_slides(page, rect, text, color, fontname)
+    
+    
+def write_slides (page, rect, text, rgb_color, fontname="Helv" ) :
+    page.insert_textbox(rect,text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255, rotate=0)
     
 if __name__ == "__main__":
 
+
     full_obj = find_object("slides_AXA_cropped.pdf")
+
+    mask_dict = generate_mask("slides_AXA_cropped.pdf", full_obj)
     
-    mask_dict = generate_mask("slides_AXA_cropped.pdf")
-    
+    key_openai = "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"
+
+    #prompt = gtp.generate_prompt('transcript_audio.txt','transcript_slides.txt',False)
     blank_space_dict = {}
+    
+    filename = 'aac.pdf'
+    doc = fitz.open(filename) 
     for key, mask in mask_dict.items():
         res = extract_many_rectangle(mask, 3)
         blank_space_dict[key] = res
+        text = "adjkasdjkadjkfsjlkfnsshchescuhriuvhuiegu \n sfbgjkhcudbcjneuchjdkmfkhiuc hckjfnnjk " #gtp.generate_response(prompt[key], key_openai) 
         
-    import matplotlib.pyplot as plt
+        txt, rect = choose_rect(res, text, "helv", 10)
 
-    for (k1, mask), (k1, ress) in zip(mask_dict.items(),blank_space_dict.items()) :
-        plt.imshow(mask, cmap='gray')
-        for res in ress :
-            plt.plot(res["x0"], res["y0"], 'ro')
-            plt.plot(res["x0"], res["y1"], 'ro')
-            plt.plot(res["x1"], res["y0"], 'ro')
-            plt.plot(res["x1"], res["y1"], 'ro')
-        plt.show()
+        page = doc[key] 
+
+        add_all_notes_slides(page, txt, rect, "Helv", color = 0)
+    doc.save("output12.pdf")  # save to new file
+               
+    # import matplotlib.pyplot as plt
+
+    # for (k1, mask), (k1, ress) in zip(mask_dict.items(),blank_space_dict.items()) :
+    #     plt.imshow(mask, cmap='gray')
+    #     for res in ress :
+    #         plt.plot(res["x0"], res["y0"], 'ro')
+    #         plt.plot(res["x0"], res["y1"], 'ro')
+    #         plt.plot(res["x1"], res["y0"], 'ro')
+    #         plt.plot(res["x1"], res["y1"], 'ro')
+    #     plt.show()
+
