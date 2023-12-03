@@ -1,4 +1,6 @@
 import openai
+from pdf2image import convert_from_path
+import matplotlib.pyplot as plt
 
 def get_key(key = None):
 
@@ -62,3 +64,25 @@ def generate_prompt(path_audio_transcript, path_slides_transcript,not_ignore_sli
         text.append("First Text: " + audio_text[i] + " Second Text: " + slide_text[i])
 
     return text
+
+def pdf_page_comparison(pdf1_path, pdf2_path):
+    pdf1_images = convert_from_path(pdf1_path)
+    pdf2_images = convert_from_path(pdf2_path)
+
+    num_pages = min(len(pdf1_images), len(pdf2_images))
+
+    fig = plt.figure(figsize=(20, 10*num_pages))
+
+    for i in range(num_pages):
+        ax1 = fig.add_subplot(num_pages, 2, 2*i+1)
+        ax1.imshow(pdf1_images[i])
+        ax1.axis('off')
+        ax1.set_title(f"Page {i+1} from File 1")
+
+        ax2 = fig.add_subplot(num_pages, 2, 2*i+2)
+        ax2.imshow(pdf2_images[i])
+        ax2.axis('off')
+        ax2.set_title(f"Page {i+1} from File 2")
+
+    plt.tight_layout()
+    plt.show()
