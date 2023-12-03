@@ -4,7 +4,7 @@ from pdfminer.layout import LTFigure
 from pdf2image import convert_from_path
 import os
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
+# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract'
 
 def generate_slide_summary(reader, slide_number : int) -> str:
     page = reader.pages[slide_number]
@@ -85,5 +85,5 @@ def extract_all_text (pdf_path = '01-NX422 keyconcepts.pdf') :
     return text_per_page
 
 if __name__ == "__main__":
-    text = extract_all_text("slides_AXA.pdf")
+    text = extract_all_text("slides_AXA_cropped.pdf")
     print(text)

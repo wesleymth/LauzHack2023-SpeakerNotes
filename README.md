@@ -18,3 +18,11 @@ pip install openai==0.28
 python -c "from transformers import pipeline; print(pipeline('sentiment-analysis')('we love you'))"
 ```
 
+
+# Docker
+```
+docker build -t lauzhack2023/speaker-notes:0.1.0 .
+docker run -it -d --name speaker_notes_container -v $(pwd):/app lauzhack2023/speaker-notes:0.1.0 /bin/bash
+docker exec -it speaker_notes_container /bin/bash
+python audio_transcribe_scene_detect.py  # How to run a file
+```
