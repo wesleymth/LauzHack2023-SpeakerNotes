@@ -82,6 +82,21 @@ def create_slide_transitions_df(
     )
     return slide_transitions
 
+def assign_slide_text(time_text_df, slide_transitions):
+    slide_transitions['slide_text'] = ''
+    idx_slide = 0
+    for index, text_row in time_text_df.iterrows():
+        if text_row['timestamp'][1] > slide_transitions['timestamps'][idx_slide][1]:
+            idx_slide+=1
+        slide_transitions['slide_text'][idx_slide] += text_row['text']
+
+    return slide_transitions
+
+def written_text_slides(slide_info):
+        #filtered_page_dict = {key: value for key, value in slide_info.items() if 'Page_4' <= key <= 'Page_9'}
+        first_values_list = [value[0] for value in slide_info.values()]
+        return pd.DataFrame({'Written_text': first_values_list})
+
 
 if __name__ == "__main__":
     video_file = "ShortVideo.mov"
@@ -93,8 +108,12 @@ if __name__ == "__main__":
     frame_transition_df = create_frame_transition_df()
     time_text_df = wrap_transciption_in_df(transcription)
     slide_transitions = create_slide_transitions_df(frame_transition_df, time_text_df)
+    slide_transitions = assign_slide_text(time_text_df, slide_transitions)
+    slide_transitions['slide_text'].to_csv('transcript_audio.txt', index=False, header=False, sep='\t')
+
+    slide_info = pd.read_pickle('info_slides.pkl')
     
-    # time_text_df.to_csv("time_text_df.csv")
-    # slide_transitions.to_csv("slide_transitions.csv")
-    
+    transcript_slides = written_text_slides(slide_info)
+
+    transcript_slides.to_csv('transcript_slides.txt', index=False, header=False, sep='\t')
     
