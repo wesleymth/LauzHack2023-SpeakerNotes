@@ -1,5 +1,15 @@
 import openai
 
+def get_key():
+    # Need to create a file keys.txt with your OpenAI_key in it
+    try:
+        with open('keys.txt', 'r') as file:
+            openai_key = file.read()
+    except Exception as e:
+            print(e)
+            
+    return openai_key
+
 def generate_response(prompt, openai_key):
 
     openai.api_key = openai_key
