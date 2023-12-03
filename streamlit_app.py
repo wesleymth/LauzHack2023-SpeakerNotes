@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 from audio_transcribe_scene_detect import MP4ToMP3, transcribe_audio, detect_frame_changes, create_frame_transition_df, wrap_transciption_in_df, create_slide_transitions_df, assign_slide_text
+import pickle
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
@@ -116,75 +117,37 @@ if 'pipeline_clicked' not in st.session_state:
     st.session_state.pipeline_clicked = False
 if 'warn_api_key_missing' not in st.session_state:
     st.session_state.warn_api_key_missing = False
+if 'pipeline_ran' not in st.session_state:
+    st.session_state.pipeline_ran = False
+
 def click_button():
-    if st.session_state.api_key_inputed:
-        st.session_state.pipeline_clicked = True
-        st.session_state.warn_api_key_missing = False
-    else:
-        st.session_state.warn_api_key_missing = True
+    input_video_filepath = os.path.join('data', input_video.name)
+    audio_file = os.path.join("data", "audio_of_video.mp3")
+    MP4ToMP3(input_video_filepath, audio_file)
+    transcription = transcribe_audio(
+        audio_file,
+        whisper_model=f"openai/whisper-{option_model}"
+    )
+    f_path = "transcription.pkl"
+    
+    time_text_df = wrap_transciption_in_df(transcription)
+
+    
+    detect_frame_changes(input_video_filepath, detection_threshold=ffmpeg_sensitivity)
+    frame_transition_df = create_frame_transition_df(same_transition_time_threshold=transition_time_threshold)
+    
+
+        
+    slide_transitions = create_slide_transitions_df(frame_transition_df, time_text_df)
+    slide_transitions = assign_slide_text(time_text_df, slide_transitions)
+    if st.checkbox('Show transcribed audio timestamps'):
+        st.write(time_text_df)
+
+    if st.checkbox('Show slide timestamps'):
+        st.write(frame_transition_df)
+        
+    if st.checkbox('Show slide transitions'):
+        st.write(slide_transitions)
         
 
 st.button('Run Pipeline :point_left:', on_click=click_button)
-
-if st.session_state.warn_api_key_missing:
-    st.text('Please input your OpenAI API key before running the pipeline!!')
-if st.session_state.pipeline_clicked:
-    st.write('The pipeline is running!')
-
-
-st.header('Intermediate Steps', divider='blue')
-
-if 'pipeline_ran' not in st.session_state:
-    st.session_state.pipeline_ran = False
-    
-if not st.session_state.pipeline_clicked:
-    st.write('Please run the pipeline beforehand.')
-else:
-    if not st.session_state.pipeline_ran:
-    
-        # st.write("Filename: ", input_pdf.name)
-        # st.write("Filename: ", input_video.name)
-        # input_pdf_filepath = os.path.join('data', input_pdf.name)
-        input_video_filepath = os.path.join('data', input_video.name)
-        audio_file = os.path.join("data", "audio_of_video.mp3")
-        MP4ToMP3(input_video_filepath, audio_file)
-        transcription = transcribe_audio(
-            audio_file,
-            whisper_model=f"openai/whisper-{option_model}"
-        )
-        st.write(transcription)
-        # detect_frame_changes(video_file)
-        # frame_transition_df = create_frame_transition_df()
-        # time_text_df = wrap_transciption_in_df(transcription)
-        # slide_transitions = create_slide_transitions_df(frame_transition_df, time_text_df)
-        # slide_transitions = assign_slide_text(time_text_df, slide_transitions)
-    else:
-        st.write(transcription)
-        if st.checkbox('Show transcribed audio timestamps'):
-            st.write('Some results...')
-        if st.checkbox('Show slide timestamps'):
-            st.write('Some results...')
-        if st.checkbox('Show segmented image with text rectangles'):
-            st.write('Some results...')
-
-if not st.session_state.pipeline_clicked:
-    st.header('Output :mailbox_with_no_mail:', divider='blue')
-    st.write('Please run the pipeline beforehand.')
-else:
-    st.header('Output :mailbox_with_mail:', divider='blue')
-    # if st.checkbox('Show raw data'):
-    #     st.subheader('Raw data')
-    #     st.write(data)
-    # @st.cache
-    # def convert_df(df):
-    #     # IMPORTANT: Cache the conversion to prevent computation on every rerun
-    #     return df.to_csv().encode('utf-8')
-    # csv = convert_df(my_large_df)
-    st.download_button(
-        label="Download data as CSV",
-        data=None,
-        file_name='large_df.csv',
-        mime='text/csv',
-    )
-    
-    st.write('Some results...') # TODO: Show slides before and after
