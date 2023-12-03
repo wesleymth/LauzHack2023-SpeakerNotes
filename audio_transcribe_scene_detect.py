@@ -99,8 +99,11 @@ def written_text_slides(slide_info):
 
 
 if __name__ == "__main__":
-    video_file = "ShortVideo.mov"
+    video_file = "ShortVideo.mov"#"Key_Concepts_(Source) (online-video-cutter.com).mp4"
     audio_file = "ShortVideo.mp3"
+    transcript_audio_file = 'transcript_audio.txt'
+    # info_slides = 'info_slides.pkl'
+    # transcipt_slides_file = 'transcript_slides.txt'
     
     MP4ToMP3(video_file, audio_file)
     transcription = transcribe_audio(audio_file)
@@ -109,11 +112,11 @@ if __name__ == "__main__":
     time_text_df = wrap_transciption_in_df(transcription)
     slide_transitions = create_slide_transitions_df(frame_transition_df, time_text_df)
     slide_transitions = assign_slide_text(time_text_df, slide_transitions)
-    slide_transitions['slide_text'].to_csv('transcript_audio.txt', index=False, header=False, sep='\t')
+    slide_transitions['slide_text'].to_csv(transcript_audio_file, index=False, header=False, sep='\t')
 
-    slide_info = pd.read_pickle('info_slides.pkl')
+    # slide_info = pd.read_pickle(info_slides)
     
-    transcript_slides = written_text_slides(slide_info)
+    # transcript_slides = written_text_slides(slide_info)
 
-    transcript_slides.to_csv('transcript_slides.txt', index=False, header=False, sep='\t')
+    # transcript_slides.to_csv(transcipt_slides_file, index=False, header=False, sep='\t')
     
