@@ -122,7 +122,7 @@ def extract_many_rectangle(mask, nb_of_rectangle) :
 def choose_rect (rect_list, text, font, fs) :
     
     font = fitz.Font(font)
-    x = text.split("/n")
+    x = text.split("\n")
     
     fs = 10
     i = 0
@@ -141,7 +141,7 @@ def choose_rect (rect_list, text, font, fs) :
             if current == "" :
                 current = x[i]
             else :
-                current = current + "/n" + x[i]
+                current = current + "\n" + x[i]
                 
             tl = font.text_length(current, fontsize=fs)
             nb_line += tl / (rect[2]-rect[0])
@@ -152,43 +152,44 @@ def choose_rect (rect_list, text, font, fs) :
         j += 1
     return text_list, rect_l
 
-def add_all_notes_slides(doc, text_list, color, rect_list, fontname):
-    page = doc[0]
+def add_all_notes_slides(page, text_list, rect_list, fontname, color):
     for rect, text in zip(rect_list, text_list):
         write_slides(page, rect, text, color, fontname)
     
     
 
 def write_slides (page, rect, text, rgb_color, fontname="Helv" ) :
-    page.insert_textbox(rect,text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255)
+    page.insert_textbox(rect,text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255, rotate=0)
     
 if __name__ == "__main__":
 
-    full_obj = find_object("slides_AXA_cropped.pdf")
+    full_obj = find_object("aac.pdf")
     
-    mask_dict = generate_mask("slides_AXA_cropped.pdf", full_obj)
+    mask_dict = generate_mask("aac.pdf", full_obj)
     
     blank_space_dict = {}
+    
+    filename = 'aac.pdf'
+    doc = fitz.open(filename) 
     for key, mask in mask_dict.items():
         res = extract_many_rectangle(mask, 3)
         blank_space_dict[key] = res
-        text = "bjbkjbkjbmn" #todo
+        text = "bjbkjb \n kjbmn bkjb \n kjbmn vnjeab veabkj vnjefkvn nvekj  nvekjbn cnjwkfvn kjqfnkjwnf ncjkwnfgW J bjbkjb \n bjbkjb \n kjbmn bkjb \n kjbmn vnjeab veabkj vnjefkvn nvekj  nvekjbn cnjwkjbmn vnjeab veabkj vnjefkvn nvekj  nvekjbn cnjwkfvn kjqfnkjwnf ncjkwnfgW J bjbkjb \n kjbmn vnjeab veabkj vnjefkvn nvekj  kfvn kjqfnkjwnf ncjkwnfgW Jbjbkjb" #todo
         
         txt, rect = choose_rect(res, text, "helv", 10)
 
-        filename = 'slides_AXA_cropped.pdf'
-        doc = fitz.open(filename)  
+        page = doc[key] 
 
-        add_all_notes_slides(doc, txt, 0, rect, "Helv")
-        doc.save("output9.pdf")  # save to new file
+        add_all_notes_slides(page, txt, rect, "Helv", color = 0)
+    doc.save("output12.pdf")  # save to new file
                
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
-    for (k1, mask), (k1, ress) in zip(mask_dict.items(),blank_space_dict.items()) :
-        plt.imshow(mask, cmap='gray')
-        for res in ress :
-            plt.plot(res["x0"], res["y0"], 'ro')
-            plt.plot(res["x0"], res["y1"], 'ro')
-            plt.plot(res["x1"], res["y0"], 'ro')
-            plt.plot(res["x1"], res["y1"], 'ro')
-        plt.show()
+    # for (k1, mask), (k1, ress) in zip(mask_dict.items(),blank_space_dict.items()) :
+    #     plt.imshow(mask, cmap='gray')
+    #     for res in ress :
+    #         plt.plot(res["x0"], res["y0"], 'ro')
+    #         plt.plot(res["x0"], res["y1"], 'ro')
+    #         plt.plot(res["x1"], res["y0"], 'ro')
+    #         plt.plot(res["x1"], res["y1"], 'ro')
+    #     plt.show()
