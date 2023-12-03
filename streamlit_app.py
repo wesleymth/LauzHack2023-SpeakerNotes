@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
+from audio_transcribe_scene_detect import MP4ToMP3, transcribe_audio, detect_frame_changes, create_frame_transition_df, wrap_transciption_in_df, create_slide_transitions_df, assign_slide_text
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
@@ -105,6 +107,7 @@ st.header('Run the Pipeline', divider='blue')
 
 if 'api_key_inputed' not in st.session_state:
     st.session_state.api_key_inputed = False
+    
 def input_api_key():
     st.session_state.api_key_inputed = True
 OPENAI_API_KEY = st.text_input('OpenAI API key :closed_lock_with_key:', '', on_change=input_api_key, type="password")
@@ -130,8 +133,39 @@ if st.session_state.pipeline_clicked:
 
 
 st.header('Intermediate Steps', divider='blue')
+
+if 'pipeline_ran' not in st.session_state:
+    st.session_state.pipeline_ran = False
+    
 if not st.session_state.pipeline_clicked:
     st.write('Please run the pipeline beforehand.')
+else:
+    if not st.session_state.pipeline_ran:
+    
+        # st.write("Filename: ", input_pdf.name)
+        # st.write("Filename: ", input_video.name)
+        # input_pdf_filepath = os.path.join('data', input_pdf.name)
+        input_video_filepath = os.path.join('data', input_video.name)
+        audio_file = os.path.join("data", "audio_of_video.mp3")
+        MP4ToMP3(input_video_filepath, audio_file)
+        transcription = transcribe_audio(
+            audio_file,
+            whisper_model=f"openai/whisper-{option_model}"
+        )
+        st.write(transcription)
+        # detect_frame_changes(video_file)
+        # frame_transition_df = create_frame_transition_df()
+        # time_text_df = wrap_transciption_in_df(transcription)
+        # slide_transitions = create_slide_transitions_df(frame_transition_df, time_text_df)
+        # slide_transitions = assign_slide_text(time_text_df, slide_transitions)
+    else:
+        st.write(transcription)
+        if st.checkbox('Show transcribed audio timestamps'):
+            st.write('Some results...')
+        if st.checkbox('Show slide timestamps'):
+            st.write('Some results...')
+        if st.checkbox('Show segmented image with text rectangles'):
+            st.write('Some results...')
 
 if not st.session_state.pipeline_clicked:
     st.header('Output :mailbox_with_no_mail:', divider='blue')
@@ -152,3 +186,5 @@ else:
         file_name='large_df.csv',
         mime='text/csv',
     )
+    
+    st.write('Some results...') # TODO: Show slides before and after
