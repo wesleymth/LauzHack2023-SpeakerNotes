@@ -84,6 +84,8 @@ def extract_all_text (pdf_path = '01-NX422 keyconcepts.pdf') :
     os.remove('cropped_image.pdf')
     return text_per_page
 
+
+
 if __name__ == "__main__":
-    text = extract_all_text("slides_AXA.pdf")
+    text = extract_all_text("../slides_AXA_cropped.pdf")
     print(text)

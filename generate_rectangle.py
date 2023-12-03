@@ -35,7 +35,7 @@ def find_object(path) :
         full_obj[i] = obj
     return full_obj
 
-def generate_mask(path):
+def generate_mask(path, full_obj):
 
     pdf_document = fitz.open(path)
     mask_dict = {}
@@ -119,19 +119,69 @@ def extract_many_rectangle(mask, nb_of_rectangle) :
         msk[res["y0"]:res["y1"], res["x0"]:res["x1"]] = 0
     return dict_rect
  
+def choose_rect (rect_list, text, font, fs) :
+    
+    font = fitz.Font(font)
+    x = text.split("/n")
+    
+    fs = 10
+    i = 0
+    j = 0
+    text_list = []
+    rect_l = []
 
+    while len(rect_list) > j  and len(x)> i :
+        rect = [rect_list[j]["x0"]+5, rect_list[j]["y0"]+5, rect_list[j]["x1"]-5, rect_list[j]["y1"]-5]
+        available_line = (rect[3]-rect[1]) / ((font.ascender - font.descender) * fs)
+        nb_line = 0
+        current = ""
+
+        while available_line >  np.ceil(nb_line) and len(x)> i :
+        
+            if current == "" :
+                current = x[i]
+            else :
+                current = current + "/n" + x[i]
+                
+            tl = font.text_length(current, fontsize=fs)
+            nb_line += tl / (rect[2]-rect[0])
+            i += 1
+            
+        text_list.append(current)
+        rect_l.append(rect)
+        j += 1
+    return text_list, rect_l
+
+def add_all_notes_slides(doc, text_list, color, rect_list, fontname):
+    page = doc[0]
+    for rect, text in zip(rect_list, text_list):
+        write_slides(page, rect, text, color, fontname)
+    
+    
+
+def write_slides (page, rect, text, rgb_color, fontname="Helv" ) :
+    page.insert_textbox(rect,text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255)
     
 if __name__ == "__main__":
 
     full_obj = find_object("slides_AXA_cropped.pdf")
     
-    mask_dict = generate_mask("slides_AXA_cropped.pdf")
+    mask_dict = generate_mask("slides_AXA_cropped.pdf", full_obj)
     
     blank_space_dict = {}
     for key, mask in mask_dict.items():
         res = extract_many_rectangle(mask, 3)
         blank_space_dict[key] = res
+        text = "bjbkjbkjbmn" #todo
         
+        txt, rect = choose_rect(res, text, "helv", 10)
+
+        filename = 'slides_AXA_cropped.pdf'
+        doc = fitz.open(filename)  
+
+        add_all_notes_slides(doc, txt, 0, rect, "Helv")
+        doc.save("output9.pdf")  # save to new file
+               
     import matplotlib.pyplot as plt
 
     for (k1, mask), (k1, ress) in zip(mask_dict.items(),blank_space_dict.items()) :
