@@ -4,6 +4,20 @@ import numpy as np
 import os
 from audio_transcribe_scene_detect import MP4ToMP3, transcribe_audio, detect_frame_changes, create_frame_transition_df, wrap_transciption_in_df, create_slide_transitions_df, assign_slide_text
 import pickle
+import gtp_summary as gtp
+
+import base64
+
+def displayPDF(file):
+    # Opening file from file path
+    with open(file, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+
+    # Embedding PDF in HTML
+    pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="400" height="700" type="application/pdf">'
+
+    # Displaying File
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
@@ -41,7 +55,6 @@ with col1:
 with col2:
     st.header("Video :movie_camera:")
     input_video = st.file_uploader("Choose the video of the presentation", type=['mov', 'mp4'])
-    
 
 st.header('Settings :wrench:', divider='blue')
 scene_detect_tab, whisper_tab, chatgpt_tab, text_to_annotate_tab = st.tabs(
@@ -119,30 +132,27 @@ def click_button():
     if st.session_state.pipeline_clicked == False:
         st.session_state.pipeline_clicked = True
         
-input_video_filepath = os.path.join('data', input_video.name)
 
 button_clicked = st.button('Run Pipeline :point_left:', on_click=click_button)
 if st.session_state.pipeline_clicked:
-    time_text_df = pd.read_csv("time_text_df.csv")
-    frame_transition_df = pd.read_csv("slide_transitions.csv")
-    if st.checkbox('Show transcribed audio timestamps'):
-        st.write(time_text_df)
+    # time_text_df = pd.read_csv("time_text_df.csv")
+    # frame_transition_df = pd.read_csv("slide_transitions.csv")
+    # if st.checkbox('Show transcribed audio timestamps'):
+    #     st.write(time_text_df)
 
-    if st.checkbox('Show slide timestamps'):
-        st.write(frame_transition_df)
+    # if st.checkbox('Show slide timestamps'):
+    #     st.write(frame_transition_df)
         
+    # col1_2, col2_3 = st.columns(2, gap="large")
+    # with col1_2:
+    #     displayPDF(f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name[:-4]}_cropped.pdf')
+    # with col2_3:
+    #     displayPDF(f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name[:-4]}_output.pdf')
+        
+    comparison_fig = gtp.pdf_page_comparison(f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name[:-4]}_cropped.pdf', f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name[:-4]}_output.pdf')
+    st.pyplot(comparison_fig)
 
-import base64
 
-def displayPDF(file):
-    # Opening file from file path
-    with open(file, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
 
-    # Embedding PDF in HTML
-    pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
 
-    # Displaying File
-    st.markdown(pdf_display, unsafe_allow_html=True)
 
-displayPDF(f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name}_output.pdf')
