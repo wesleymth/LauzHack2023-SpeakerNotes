@@ -160,33 +160,34 @@ def add_all_notes_slides(page, text_list, rect_list, fontname, color):
     
     
 def write_slides (page, rect, text, rgb_color, fontname="Helv" ) :
-    page.insert_textbox(rect,text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255, rotate=0)
+    page.insert_textbox(rect, text,  fontsize=9, fontname=fontname, fontfile=None, color=rgb_color/255, rotate=0)
     
 if __name__ == "__main__":
 
+    filename = '01-NX422 keyconcepts_organized.pdf'
 
-    full_obj = find_object("slides_AXA_cropped.pdf")
+    full_obj = find_object(filename)
 
-    mask_dict = generate_mask("slides_AXA_cropped.pdf", full_obj)
+    mask_dict = generate_mask(filename, full_obj)
     
-    key_openai = "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"
+    key_openai = gtp.get_key()
 
-    #prompt = gtp.generate_prompt('transcript_audio.txt','transcript_slides.txt',False)
+    prompt = gtp.generate_prompt('transcript_audio.txt','transcript_slides.txt',False)
     blank_space_dict = {}
     
-    filename = 'aac.pdf'
     doc = fitz.open(filename) 
     for key, mask in mask_dict.items():
         res = extract_many_rectangle(mask, 3)
         blank_space_dict[key] = res
-        text = "adjkasdjkadjkfsjlkfnsshchescuhriuvhuiegu \n sfbgjkhcudbcjneuchjdkmfkhiuc hckjfnnjk " #gtp.generate_response(prompt[key], key_openai) 
+        text = gtp.generate_response(prompt[key], key_openai) 
         
         txt, rect = choose_rect(res, text, "helv", 10)
+        print(rect)
 
         page = doc[key] 
 
         add_all_notes_slides(page, txt, rect, "Helv", color = 0)
-    doc.save("output12.pdf")  # save to new file
+    doc.save("output23.pdf")  # save to new file
                
     # import matplotlib.pyplot as plt
 
