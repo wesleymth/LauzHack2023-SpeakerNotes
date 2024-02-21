@@ -3,21 +3,6 @@ import pandas as pd
 import numpy as np
 import os
 from audio_transcribe_scene_detect import MP4ToMP3, transcribe_audio, detect_frame_changes, create_frame_transition_df, wrap_transciption_in_df, create_slide_transitions_df, assign_slide_text
-import pickle
-import gtp_summary as gtp
-
-import base64
-
-def displayPDF(file):
-    # Opening file from file path
-    with open(file, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-
-    # Embedding PDF in HTML
-    pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="400" height="700" type="application/pdf">'
-
-    # Displaying File
-    st.markdown(pdf_display, unsafe_allow_html=True)
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
@@ -55,6 +40,7 @@ with col1:
 with col2:
     st.header("Video :movie_camera:")
     input_video = st.file_uploader("Choose the video of the presentation", type=['mov', 'mp4'])
+    
 
 st.header('Settings :wrench:', divider='blue')
 scene_detect_tab, whisper_tab, chatgpt_tab, text_to_annotate_tab = st.tabs(
@@ -118,6 +104,7 @@ with text_to_annotate_tab:
 
 st.header('Run the Pipeline', divider='blue')
 
+
 if 'api_key_inputed' not in st.session_state:
     st.session_state.api_key_inputed = False
     
@@ -125,36 +112,65 @@ def input_api_key():
     st.session_state.api_key_inputed = True
 OPENAI_API_KEY = st.text_input('OpenAI API key :closed_lock_with_key:', '', on_change=input_api_key, type="password")
 
-
 if 'pipeline_clicked' not in st.session_state:
     st.session_state.pipeline_clicked = False
+if 'warn_api_key_missing' not in st.session_state:
+    st.session_state.warn_api_key_missing = False
+if 'pipeline_ran' not in st.session_state:
+    st.session_state.pipeline_ran = False
+
 def click_button():
-    if st.session_state.pipeline_clicked == False:
+    if st.session_state.api_key_inputed:
         st.session_state.pipeline_clicked = True
+        st.session_state.warn_api_key_missing = False
+    else:
+        st.session_state.warn_api_key_missing = True
         
 
-button_clicked = st.button('Run Pipeline :point_left:', on_click=click_button)
+st.button('Run Pipeline :point_left:', on_click=click_button)
+
+if st.session_state.warn_api_key_missing:
+    st.text('Please input your OpenAI API key before running the pipeline!!')
 if st.session_state.pipeline_clicked:
-    # time_text_df = pd.read_csv("time_text_df.csv")
-    # frame_transition_df = pd.read_csv("slide_transitions.csv")
-    # if st.checkbox('Show transcribed audio timestamps'):
-    #     st.write(time_text_df)
+    st.write('The pipeline is running!')
+if st.session_state.pipeline_ran:
+    st.write('Finished running the pipeline!')
 
-    # if st.checkbox('Show slide timestamps'):
-    #     st.write(frame_transition_df)
-        
-    # col1_2, col2_3 = st.columns(2, gap="large")
-    # with col1_2:
-    #     displayPDF(f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name[:-4]}_cropped.pdf')
-    # with col2_3:
-    #     displayPDF(f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name[:-4]}_output.pdf')
-        
-    comparison_fig = gtp.pdf_page_comparison(f'/Users/wesleymonteith/code/LauzHack2023-AutoNote/data/{input_video.name[:-4]}_cropped.pdf', f'/Users/wesleymonteith/code/{input_video.name[:-4]}_output.pdf')
-    st.pyplot(comparison_fig)
+time_text_df = None
+frame_transition_df=None
+slide_transitions=None
+
+if not st.session_state.pipeline_clicked:
+    st.header('Output :mailbox_with_no_mail:', divider='blue')
+    st.write('Please run the pipeline beforehand.')
+elif not st.session_state.pipeline_ran:
+    st.header('Output :mailbox_with_mail:', divider='blue')
+    input_video_filepath = os.path.join('data', input_video.name)
+    # audio_file = os.path.join("data", "audio_of_video.mp3")
+    # MP4ToMP3(input_video_filepath, audio_file)
+    # transcription = transcribe_audio(
+    #     audio_file,
+    #     whisper_model=f"openai/whisper-{option_model}"
+    # )
+    time_text_df = pd.read_csv()
+
     
-    displayPDF(f'/Users/wesleymonteith/code/{input_video.name[:-4]}_output.pdf')
+    detect_frame_changes(input_video_filepath, detection_threshold=ffmpeg_sensitivity)
+    frame_transition_df = create_frame_transition_df(same_transition_time_threshold=transition_time_threshold)
+    
 
+        
+    slide_transitions = create_slide_transitions_df(frame_transition_df, time_text_df)
+    slide_transitions = assign_slide_text(time_text_df, slide_transitions)
+    
+    # st.write('Finished running the pipeline with success!!')
+    st.session_state.pipeline_ran = True
 
+if st.checkbox('Show transcribed audio timestamps'):
+    st.write(time_text_df)
 
-
-
+if st.checkbox('Show slide timestamps'):
+    st.write(frame_transition_df)
+    
+if st.checkbox('Show slide transitions'):
+    st.write(slide_transitions)
